@@ -1,0 +1,39 @@
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.tree import DecisionTreeClassifier, export_text
+
+# --- Load CSV file ---
+df = pd.read_csv("/content/play_tennis.csv")   # Make sure the file is in the same folder
+print("Dataset:")
+print(df)
+# --- Label Encoding ---
+le_dict = {}
+for column in df.columns:
+    le = LabelEncoder()
+    df[column] = le.fit_transform(df[column])
+    le_dict[column] = le     # store encoders for prediction later
+
+# Features and Target
+X = df.drop('play', axis=1)
+y = df['play']
+
+# --- Train Decision Tree ---
+model = DecisionTreeClassifier(criterion="entropy")
+model.fit(X, y)
+
+# --- Example Prediction ---
+# Predict for: Outlook=Sunny, Temperature=Mild, Humidity=High, Wind=Weak
+sample = {
+    'outlook': le_dict['outlook'].transform(['Sunny'])[0],
+    'temp': le_dict['temp'].transform(['Mild'])[0],
+    'humidity': le_dict['humidity'].transform(['High'])[0],
+    'wind': le_dict['wind'].transform(['Weak'])[0]
+}
+
+import numpy as np
+sample_df = pd.DataFrame([sample])
+
+prediction = model.predict(sample_df)[0]
+print("\nPrediction (0 = No, 1 = Yes):", prediction)
+
+
